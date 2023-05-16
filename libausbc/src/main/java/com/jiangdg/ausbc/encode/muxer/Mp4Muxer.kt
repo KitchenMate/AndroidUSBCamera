@@ -51,7 +51,7 @@ import java.util.*
 class Mp4Muxer(
     context: Context?,
     callBack: ICaptureCallBack,
-    private var path: String? = null,
+    private var fd: FileDescriptor? = null,
     private val durationInSec: Long = 0,
     private val isVideoOnly: Boolean = false
 ) {
@@ -79,13 +79,7 @@ class Mp4Muxer(
         this.mCaptureCallBack = callBack
         this.mContext= context
         try {
-            if (path.isNullOrEmpty()) {
-                val date = mDateFormat.format(System.currentTimeMillis())
-                path = "$mCameraDir/VID_JJCamera_$date"
-            }
-            mOriginalPath = path
-            path = "${path}.mp4"
-            mMediaMuxer = MediaMuxer(path!!, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+            mMediaMuxer = MediaMuxer(fd, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
         } catch (e: Exception) {
             mCaptureCallBack?.onError(e.localizedMessage)
             Logger.e(TAG, "init media muxer failed, err = ${e.localizedMessage}", e)
@@ -201,10 +195,8 @@ class Mp4Muxer(
             mVideoTrackerIndex = -1
             mAudioPts = 0L
             mVideoPts = 0L
-            insertDCIM(mContext, path)
 
-            path = "${mOriginalPath}_${++mFileSubIndex}.mp4"
-            mMediaMuxer = MediaMuxer(path!!, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+            mMediaMuxer = MediaMuxer(fd, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
             addTracker(mVideoFormat, true)
             addTracker(mAudioFormat, false)
         } catch (e: Exception) {
@@ -223,7 +215,6 @@ class Mp4Muxer(
         try {
             mMediaMuxer?.stop()
             mMediaMuxer?.release()
-            insertDCIM(mContext, path, true)
         } catch (e: Exception) {
             mMainHandler.post {
                 mCaptureCallBack?.onError(e.localizedMessage)
@@ -239,21 +230,6 @@ class Mp4Muxer(
     }
 
     fun getSavePath() = path
-
-    private fun insertDCIM(context: Context?, videoPath: String?, notifyOut: Boolean = false) {
-        context?.let { ctx ->
-            if (videoPath.isNullOrEmpty()) {
-                return
-            }
-            ctx.contentResolver.let { content ->
-                val uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI
-                content.insert(uri, getVideoContentValues(videoPath))
-                mMainHandler.post {
-                    mCaptureCallBack?.onComplete(this.path)
-                }
-            }
-        }
-    }
 
     private fun getVideoContentValues(path: String): ContentValues {
         val file = File(path)
