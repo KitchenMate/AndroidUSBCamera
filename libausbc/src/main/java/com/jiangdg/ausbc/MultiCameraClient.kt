@@ -367,7 +367,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                 }
                 MSG_CAPTURE_VIDEO_START -> {
                     (msg.obj as Triple<*, *, *>).apply {
-                        captureVideoStartInternal(first as? String, second as Long, third as ICaptureCallBack)
+                        captureVideoStartInternal(first as? FileDescriptor, second as Long, third as ICaptureCallBack)
                     }
                 }
                 MSG_CAPTURE_VIDEO_STOP -> {
@@ -698,11 +698,11 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * Capture video start
          *
          * @param callBack capture result callback, see [ICaptureCallBack]
-         * @param path video save path, default is DICM/Camera
+         * @param fd FileDescriptor of the video file
          * @param durationInSec video file auto divide duration is seconds
          */
-        fun captureVideoStart(callBack: ICaptureCallBack, path: String? = null, durationInSec: Long = 0L) {
-            Triple(path, durationInSec, callBack).apply {
+        fun captureVideoStart(callBack: ICaptureCallBack, fd: FileDescriptor? = null, durationInSec: Long = 0L) {
+            Triple(fd, durationInSec, callBack).apply {
                 mCameraHandler?.obtainMessage(MSG_CAPTURE_VIDEO_START, this)?.sendToTarget()
             }
         }
@@ -852,7 +852,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
 
         fun isStreaming() = mVideoProcess?.isEncoding() == true || mAudioProcess?.isEncoding() == true
 
-        private fun captureVideoStartInternal(path: String?, durationInSec: Long, callBack: ICaptureCallBack) {
+        private fun captureVideoStartInternal(fd: FileDescriptor?, durationInSec: Long, callBack: ICaptureCallBack) {
             if (! isCameraOpened()) {
                 Logger.e(TAG ,"capture video failed, camera not opened")
                 return
@@ -862,7 +862,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                 return
             }
             captureStreamStartInternal()
-            Mp4Muxer(mContext, callBack, path, durationInSec, mAudioProcess==null).apply {
+            Mp4Muxer(mContext, callBack, fd, durationInSec, mAudioProcess==null).apply {
                 mVideoProcess?.setMp4Muxer(this, true)
                 mAudioProcess?.setMp4Muxer(this, false)
             }.also { muxer ->
