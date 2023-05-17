@@ -17,10 +17,12 @@ package com.jiangdg.ausbc
 
 import android.content.Context
 import android.graphics.SurfaceTexture
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.Surface
 import androidx.annotation.MainThread
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -51,6 +53,7 @@ import com.jiangdg.ausbc.widget.AspectRatioTextureView
 import com.jiangdg.ausbc.widget.IAspectRatio
 import com.jiangdg.usb.USBMonitor
 import com.jiangdg.uvc.UVCCamera
+import java.io.FileDescriptor
 import kotlin.math.abs
 
 /**
@@ -410,8 +413,9 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
      * @param path video save path, default is DICM/Camera
      * @param durationInSec video file auto divide duration is seconds
      */
-    fun captureVideoStart(callBack: ICaptureCallBack, path: String ?= null, durationInSec: Long = 0L) {
-        mMediaMuxer = Mp4Muxer(mCtx, callBack,  path, durationInSec)
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun captureVideoStart(callBack: ICaptureCallBack, fd: FileDescriptor, durationInSec: Long = 0L) {
+        mMediaMuxer = Mp4Muxer(mCtx, callBack,  fd, durationInSec)
         (mVideoProcess as? H264EncodeProcessor)?.apply {
             startEncode()
             setMp4Muxer(mMediaMuxer!!, true)
@@ -437,6 +441,7 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
     /**
      * Capture video stop
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     fun captureVideoStop() {
         mRenderManager?.stopRenderCodec()
         mMediaMuxer?.release()
@@ -548,6 +553,7 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
 
     private fun addLifecycleObserver(context: Context) {
         (context as LifecycleOwner).lifecycle.addObserver(object : LifecycleEventObserver {
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
                 when (event) {
                     Lifecycle.Event.ON_DESTROY -> {

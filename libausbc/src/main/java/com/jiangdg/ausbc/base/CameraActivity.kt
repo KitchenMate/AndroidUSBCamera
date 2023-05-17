@@ -18,10 +18,12 @@ package com.jiangdg.ausbc.base
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.usb.UsbDevice
+import android.os.Build
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
+import androidx.annotation.RequiresApi
 import com.jiangdg.ausbc.MultiCameraClient
 import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.camera.bean.PreviewSize
@@ -34,6 +36,7 @@ import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.SettableFuture
 import com.jiangdg.ausbc.widget.IAspectRatio
 import com.jiangdg.usb.USBMonitor
+import java.io.FileDescriptor
 import java.lang.IllegalArgumentException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -291,6 +294,7 @@ abstract class CameraActivity: BaseActivity(), ICameraStateCallBack {
      * @param width camera preview width
      * @param height camera preview height
      */
+    @RequiresApi(Build.VERSION_CODES.O)
     protected fun updateResolution(width: Int, height: Int) {
         getCurrentCamera()?.updateResolution(width, height)
     }
@@ -379,8 +383,8 @@ abstract class CameraActivity: BaseActivity(), ICameraStateCallBack {
      * @param path custom save path
      * @param durationInSec divided record duration time in seconds
      */
-    protected fun captureVideoStart(callBack: ICaptureCallBack, path: String ?= null, durationInSec: Long = 0L) {
-        getCurrentCamera()?.captureVideoStart(callBack, path, durationInSec)
+    protected fun captureVideoStart(callBack: ICaptureCallBack, fd: FileDescriptor, durationInSec: Long = 0L) {
+        getCurrentCamera()?.captureVideoStart(callBack, fd, durationInSec)
     }
 
     /**
