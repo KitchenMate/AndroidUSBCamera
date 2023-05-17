@@ -21,16 +21,19 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.media.MediaMuxer
+import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.text.format.DateUtils
+import androidx.annotation.RequiresApi
 import com.jiangdg.ausbc.callback.ICaptureCallBack
 import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.MediaUtils
 import com.jiangdg.ausbc.utils.Utils
 import java.io.File
+import java.io.FileDescriptor
 import java.lang.Exception
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
@@ -48,12 +51,13 @@ import java.util.*
  *
  * @author Created by jiangdg on 2022/2/10
  */
+@RequiresApi(Build.VERSION_CODES.O)
 class Mp4Muxer(
-    context: Context?,
-    callBack: ICaptureCallBack,
-    private var fd: FileDescriptor? = null,
-    private val durationInSec: Long = 0,
-    private val isVideoOnly: Boolean = false
+        context: Context?,
+        callBack: ICaptureCallBack,
+        private var fd: FileDescriptor,
+        private val durationInSec: Long = 0,
+        private val isVideoOnly: Boolean = false
 ) {
     private var mContext: Context? = null
     private var mMediaMuxer: MediaMuxer? = null
@@ -178,6 +182,7 @@ class Mp4Muxer(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun saveNewFileIfNeed() {
         try {
             val endMillis = System.currentTimeMillis()
@@ -229,7 +234,7 @@ class Mp4Muxer(
         }
     }
 
-    fun getSavePath() = path
+    fun getSavePath() = fd
 
     private fun getVideoContentValues(path: String): ContentValues {
         val file = File(path)

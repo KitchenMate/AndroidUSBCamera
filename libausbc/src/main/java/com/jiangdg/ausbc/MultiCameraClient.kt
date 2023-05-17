@@ -6,6 +6,7 @@ import android.graphics.SurfaceTexture
 import android.hardware.usb.UsbDevice
 import android.os.*
 import android.view.Surface
+import androidx.annotation.RequiresApi
 import com.jiangdg.ausbc.callback.*
 import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.camera.bean.PreviewSize
@@ -30,6 +31,7 @@ import com.jiangdg.ausbc.widget.IAspectRatio
 import com.jiangdg.usb.*
 import com.jiangdg.usb.DeviceFilter
 import com.jiangdg.uvc.UVCCamera
+import java.io.FileDescriptor
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
@@ -287,6 +289,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
             "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)}/Camera"
         }
 
+        @RequiresApi(Build.VERSION_CODES.O)
         override fun handleMessage(msg: Message): Boolean {
             when (msg.what) {
                 MSG_START_PREVIEW -> {
@@ -367,7 +370,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                 }
                 MSG_CAPTURE_VIDEO_START -> {
                     (msg.obj as Triple<*, *, *>).apply {
-                        captureVideoStartInternal(first as? FileDescriptor, second as Long, third as ICaptureCallBack)
+                        captureVideoStartInternal(first as FileDescriptor, second as Long, third as ICaptureCallBack)
                     }
                 }
                 MSG_CAPTURE_VIDEO_STOP -> {
@@ -701,7 +704,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * @param fd FileDescriptor of the video file
          * @param durationInSec video file auto divide duration is seconds
          */
-        fun captureVideoStart(callBack: ICaptureCallBack, fd: FileDescriptor? = null, durationInSec: Long = 0L) {
+        fun captureVideoStart(callBack: ICaptureCallBack, fd: FileDescriptor, durationInSec: Long = 0L) {
             Triple(fd, durationInSec, callBack).apply {
                 mCameraHandler?.obtainMessage(MSG_CAPTURE_VIDEO_START, this)?.sendToTarget()
             }
@@ -736,6 +739,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * @param height camera preview height, [PreviewSize]
          * @return result of operation
          */
+        @RequiresApi(Build.VERSION_CODES.O)
         fun updateResolution(width: Int, height: Int) {
             if (mCameraRequest == null) {
                 Logger.w(TAG, "updateResolution failed, please open camera first.")
@@ -848,11 +852,13 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
             } != null
         }
 
+        @RequiresApi(Build.VERSION_CODES.O)
         fun isRecording() = mMediaMuxer?.isMuxerStarter() == true
 
         fun isStreaming() = mVideoProcess?.isEncoding() == true || mAudioProcess?.isEncoding() == true
 
-        private fun captureVideoStartInternal(fd: FileDescriptor?, durationInSec: Long, callBack: ICaptureCallBack) {
+        @RequiresApi(Build.VERSION_CODES.O)
+        private fun captureVideoStartInternal(fd: FileDescriptor, durationInSec: Long, callBack: ICaptureCallBack) {
             if (! isCameraOpened()) {
                 Logger.e(TAG ,"capture video failed, camera not opened")
                 return
@@ -871,6 +877,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
             Logger.i(TAG, "capturing video start")
         }
 
+        @RequiresApi(Build.VERSION_CODES.O)
         private fun captureVideoStopInternal() {
             captureStreamStopInternal()
             mMediaMuxer?.release()
