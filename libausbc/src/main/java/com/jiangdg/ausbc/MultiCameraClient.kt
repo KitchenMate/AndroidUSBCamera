@@ -480,7 +480,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * @param mp3Path  mp3 save path
          * @param callBack record status, see [ICaptureCallBack]
          */
-        open fun captureAudioStart(callBack: ICaptureCallBack, mp3Path: String?=null) {
+        public open fun captureAudioStart(callBack: ICaptureCallBack, mp3Path: String?=null) {
             if (! CameraUtils.hasAudioPermission(mContext)) {
                 callBack.onError("Has no audio permission")
                 return
@@ -500,7 +500,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         /**
          * Stop rec mp3
          */
-        open fun captureAudioStop() {
+        public open fun captureAudioStop() {
             (mAudioProcess as? AACEncodeProcessor)?.recordMp3Stop()
         }
 
@@ -509,7 +509,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          *
          * @param callBack play mic status in real-time, see [IPlayCallBack]
          */
-        open fun startPlayMic(callBack: IPlayCallBack?) {
+        public open fun startPlayMic(callBack: IPlayCallBack?) {
             if (! CameraUtils.hasAudioPermission(mContext)) {
                 callBack?.onError("Has no audio permission")
                 return
@@ -520,7 +520,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         /**
          * Stop play mic
          */
-        open fun stopPlayMic() {
+        public open fun stopPlayMic() {
             (mAudioProcess as? AACEncodeProcessor)?.playAudioStop()
         }
 
@@ -530,7 +530,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * @param type rotate angle, null means rotating nothing
          * see [RotateType.ANGLE_90], [RotateType.ANGLE_270],...etc.
          */
-        open fun setRotateType(type: RotateType?) {
+        public open fun setRotateType(type: RotateType?) {
             mRenderManager?.setRotateType(type)
         }
 
@@ -540,7 +540,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * @param width surface width
          * @param height surface height
          */
-        open fun setRenderSize(width: Int, height: Int) {
+        public open fun setRenderSize(width: Int, height: Int) {
             mRenderManager?.setRenderSize(width, height)
         }
 
@@ -556,7 +556,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          *
          * @param effect a effect
          */
-        open fun addRenderEffect(effect: AbstractEffect) {
+        public open fun addRenderEffect(effect: AbstractEffect) {
             mRenderManager?.addRenderEffect(effect)
         }
 
@@ -565,7 +565,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          *
          * @param effect a effect, extending from [AbstractEffect]
          */
-        open fun removeRenderEffect(effect: AbstractEffect) {
+        public open fun removeRenderEffect(effect: AbstractEffect) {
             val defaultId =  mCameraRequest?.defaultEffect?.getId()
             if (effect.getId() == defaultId) {
                 mCameraRequest?.defaultEffect = null
@@ -578,7 +578,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          *
          * @return  default effect, extending from [AbstractEffect]
          */
-        open fun getDefaultEffect() = mCameraRequest?.defaultEffect
+        public open fun getDefaultEffect() = mCameraRequest?.defaultEffect
 
         /**
          * Update render effect
@@ -586,7 +586,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * @param classifyId effect classify id
          * @param effect new effect, null means set none
          */
-        open fun updateRenderEffect(classifyId: Int, effect: AbstractEffect?) {
+        public open fun updateRenderEffect(classifyId: Int, effect: AbstractEffect?) {
             mRenderManager?.getCacheEffectList()?.find {
                 it.getClassifyId() == classifyId
             }?.also {
@@ -613,7 +613,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          *
          * @param ctrlBlock see [USBMonitor.OnDeviceConnectListener]#onConnectedDev
          */
-        open fun setUsbControlBlock(ctrlBlock: USBMonitor.UsbControlBlock?) {
+        public open fun setUsbControlBlock(ctrlBlock: USBMonitor.UsbControlBlock?) {
             this.mCtrlBlock = ctrlBlock
         }
 
@@ -622,14 +622,14 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          *
          * @return see [UsbDevice]
          */
-        open fun getUsbDevice() = device
+        public open fun getUsbDevice() = device
 
         /**
          * Is mic supported
          *
          * @return true camera support mic
          */
-        open fun isMicSupported(device: UsbDevice?) = CameraUtils.isCameraContainsMic(device)
+        public open fun isMicSupported(device: UsbDevice?) = CameraUtils.isCameraContainsMic(device)
 
 
         /**
@@ -647,7 +647,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          *                      or SurfaceView or TextureView or GLSurfaceView
          * @param cameraRequest camera request
          */
-        open fun <T> openCamera(cameraView: T? = null, cameraRequest: CameraRequest? = null) {
+        public open fun <T> openCamera(cameraView: T? = null, cameraRequest: CameraRequest? = null) {
             mCameraView = cameraView ?: mCameraView
             mCameraRequest = cameraRequest ?: getDefaultCameraRequest()
             HandlerThread("camera-${System.currentTimeMillis()}").apply {
@@ -664,7 +664,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         /**
          * Close camera
          */
-        open fun closeCamera() {
+        public open fun closeCamera() {
             mCameraHandler?.obtainMessage(MSG_STOP_PREVIEW)?.sendToTarget()
             mCameraThread?.quitSafely()
             mCameraThread = null
@@ -676,14 +676,14 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          *
          * @return camera open status, true or false
          */
-        open fun isCameraOpened() = isPreviewed
+        public open fun isCameraOpened() = isPreviewed
 
         /**
          * Get current camera request
          *
          * @return see [CameraRequest], can be null
          */
-        open fun getCameraRequest() = mCameraRequest
+        public open fun getCameraRequest() = mCameraRequest
 
         /**
          * Capture image
@@ -691,7 +691,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * @param callBack capture a image status, see [ICaptureCallBack]
          * @param path image save path, default is DICM/Camera
          */
-        open fun captureImage(callBack: ICaptureCallBack, path: String? = null) {
+        public open fun captureImage(callBack: ICaptureCallBack, path: String? = null) {
             Pair(path, callBack).apply {
                 mCameraHandler?.obtainMessage(MSG_CAPTURE_IMAGE, this)?.sendToTarget()
             }
@@ -704,7 +704,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * @param fd FileDescriptor of the video file
          * @param durationInSec video file auto divide duration is seconds
          */
-        open fun captureVideoStart(callBack: ICaptureCallBack, fd: FileDescriptor, durationInSec: Long = 0L) {
+        public open fun captureVideoStart(callBack: ICaptureCallBack, fd: FileDescriptor, durationInSec: Long = 0L) {
             Triple(fd, durationInSec, callBack).apply {
                 mCameraHandler?.obtainMessage(MSG_CAPTURE_VIDEO_START, this)?.sendToTarget()
             }
@@ -713,7 +713,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         /**
          * Capture video stop
          */
-        open fun captureVideoStop() {
+        public open fun captureVideoStop() {
             mCameraHandler?.obtainMessage(MSG_CAPTURE_VIDEO_STOP)?.sendToTarget()
         }
 
@@ -721,14 +721,14 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * Capture stream start
          *  Getting H.264 and AAC stream
          */
-        open fun captureStreamStart() {
+        public open fun captureStreamStart() {
             mCameraHandler?.obtainMessage(MSG_CAPTURE_STREAM_START)?.sendToTarget()
         }
 
         /**
          * Capture stream stop
          */
-        open fun captureStreamStop() {
+        public open fun captureStreamStop() {
             mCameraHandler?.obtainMessage(MSG_CAPTURE_STREAM_STOP)?.sendToTarget()
         }
 
@@ -740,7 +740,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * @return result of operation
          */
         @RequiresApi(Build.VERSION_CODES.O)
-        open fun updateResolution(width: Int, height: Int) {
+        public open fun updateResolution(width: Int, height: Int) {
             if (mCameraRequest == null) {
                 Logger.w(TAG, "updateResolution failed, please open camera first.")
                 return
@@ -768,7 +768,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          *
          * @param callback camera be opened or closed
          */
-        open fun setCameraStateCallBack(callback: ICameraStateCallBack?) {
+        public open fun setCameraStateCallBack(callback: ICameraStateCallBack?) {
             this.mCameraStateCallback = callback
         }
 
@@ -777,7 +777,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          *
          * @param callBack camera encoded data call back, see [IEncodeDataCallBack]
          */
-        open fun setEncodeDataCallBack(callBack: IEncodeDataCallBack?) {
+        public open fun setEncodeDataCallBack(callBack: IEncodeDataCallBack?) {
             this.mEncodeDataCallBack = callBack
         }
 
@@ -785,7 +785,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * Add preview data call back
          * @param callBack preview data call back
          */
-        open fun addPreviewDataCallBack(callBack: IPreviewDataCallBack) {
+        public open fun addPreviewDataCallBack(callBack: IPreviewDataCallBack) {
             if (mPreviewDataCbList.contains(callBack)) {
                 return
             }
@@ -797,14 +797,14 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          *
          * @param callBack preview data call back
          */
-        open fun removePreviewDataCallBack(callBack: IPreviewDataCallBack) {
+        public open fun removePreviewDataCallBack(callBack: IPreviewDataCallBack) {
             if (! mPreviewDataCbList.contains(callBack)) {
                 return
             }
             mPreviewDataCbList.remove(callBack)
         }
 
-        open fun getSuitableSize(maxWidth: Int, maxHeight: Int): PreviewSize {
+        public open fun getSuitableSize(maxWidth: Int, maxHeight: Int): PreviewSize {
             val sizeList = getAllPreviewSizes()
             if (sizeList.isNullOrEmpty()) {
                 return PreviewSize(DEFAULT_PREVIEW_WIDTH, DEFAULT_PREVIEW_HEIGHT)
@@ -846,16 +846,16 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
             return closetSize
         }
 
-        open fun isPreviewSizeSupported(previewSize: PreviewSize): Boolean {
+        public open fun isPreviewSizeSupported(previewSize: PreviewSize): Boolean {
             return getAllPreviewSizes().find {
                 it.width == previewSize.width && it.height == previewSize.height
             } != null
         }
 
         @RequiresApi(Build.VERSION_CODES.O)
-        open fun isRecording() = mMediaMuxer?.isMuxerStarter() == true
+        public open fun isRecording() = mMediaMuxer?.isMuxerStarter() == true
 
-        open fun isStreaming() = mVideoProcess?.isEncoding() == true || mAudioProcess?.isEncoding() == true
+        public open fun isStreaming() = mVideoProcess?.isEncoding() == true || mAudioProcess?.isEncoding() == true
 
         @RequiresApi(Build.VERSION_CODES.O)
         private fun captureVideoStartInternal(fd: FileDescriptor, durationInSec: Long, callBack: ICaptureCallBack) {
