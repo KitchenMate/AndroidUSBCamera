@@ -253,7 +253,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
      * @property device see [UsbDevice]
      * @constructor Create camera by inherit it
      */
-    open class ICamera(val ctx: Context, val device: UsbDevice): Handler.Callback,
+    open abstract class ICamera(val ctx: Context, val device: UsbDevice): Handler.Callback,
         H264EncodeProcessor.OnEncodeReadyListener {
         private var mMediaMuxer: Mp4Muxer? = null
         private var mEncodeDataCallBack: IEncodeDataCallBack? = null
