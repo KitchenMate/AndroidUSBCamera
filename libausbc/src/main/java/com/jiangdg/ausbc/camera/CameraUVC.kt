@@ -44,7 +44,8 @@ import java.util.concurrent.TimeUnit
  *
  * @author Created by jiangdg on 2023/1/15
  */
-class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx, device) {
+
+open class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx, device) {
     private var mUvcCamera: UVCCamera? = null
     private val mCameraPreviewSize by lazy {
         arrayListOf<PreviewSize>()
