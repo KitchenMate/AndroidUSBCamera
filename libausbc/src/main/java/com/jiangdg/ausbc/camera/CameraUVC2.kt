@@ -52,44 +52,44 @@ import java.util.concurrent.TimeUnit
 
 open class CameraUVC2(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamera(ctx, device) {
 
-    open public fun captureVideoStop2() {
+    open public fun callCaptureVideoStop() {
         return this.captureVideoStop();
     }
 
-    open public fun captureVideoStart2(callback: ICaptureCallBack, fd: FileDescriptor, duration: Long) {
+    open public fun callCaptureVideoStart(callback: ICaptureCallBack, fd: FileDescriptor, duration: Long) {
         return this.captureVideoStart(callback, fd, duration);
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    open public fun isRecording2(): Boolean {
+    open public fun callIsRecording(): Boolean {
         return this.isRecording();
     }
 
-    open public fun getSuitableSize2(maxWidth: Int, maxHeight: Int): PreviewSize {
+    open public fun callGetSuitableSize(maxWidth: Int, maxHeight: Int): PreviewSize {
         return this.getSuitableSize(maxWidth, maxHeight);
     }
 
-    open public fun closeCamera2() {
+    open public fun callCloseCamera() {
         return this.closeCamera();
     }
 
-    open public fun getUsbDevice2(): UsbDevice {
+    open public fun callGetUsbDevice(): UsbDevice {
         return this.getUsbDevice();
     }
 
-    open public fun openCamera2(surfaceTexture: SurfaceTexture, cameraRequest: CameraRequest) {
-        return this.openCamera2(surfaceTexture, cameraRequest);
+    open public fun callOpenCamera(surfaceTexture: SurfaceTexture, cameraRequest: CameraRequest) {
+        return this.openCamera(surfaceTexture, cameraRequest);
     }
 
-    open public fun addPreviewDataCallBack2(previewCallBack: IPreviewDataCallBack) {
+    open public fun callAddPreviewDataCallback(previewCallBack: IPreviewDataCallBack) {
         return this.addPreviewDataCallBack(previewCallBack);
     }
 
-    open public fun setUsbControlBlock2(ctrlBlock : USBMonitor.UsbControlBlock) {
+    open public fun callSetUsbControlBlock(ctrlBlock : USBMonitor.UsbControlBlock) {
         return this.setUsbControlBlock(ctrlBlock);
     }
 
-    open public fun isCameraOpened2() : Boolean {
+    open public fun callIsCameraOpened() : Boolean {
         return this.isCameraOpened();
     }
 

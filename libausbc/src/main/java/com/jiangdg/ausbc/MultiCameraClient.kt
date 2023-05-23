@@ -704,7 +704,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          * @param fd FileDescriptor of the video file
          * @param durationInSec video file auto divide duration is seconds
          */
-        public open fun captureVideoStart(callBack: ICaptureCallBack, fd: FileDescriptor, durationInSec: Long = 0L) {
+        open fun captureVideoStart(callBack: ICaptureCallBack, fd: FileDescriptor, durationInSec: Long = 0L) {
             Triple(fd, durationInSec, callBack).apply {
                 mCameraHandler?.obtainMessage(MSG_CAPTURE_VIDEO_START, this)?.sendToTarget()
             }
@@ -713,7 +713,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
         /**
          * Capture video stop
          */
-        public open fun captureVideoStop() {
+        open fun captureVideoStop() {
             mCameraHandler?.obtainMessage(MSG_CAPTURE_VIDEO_STOP)?.sendToTarget()
         }
 
