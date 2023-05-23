@@ -32,6 +32,7 @@ import com.jiangdg.ausbc.utils.*
 import com.jiangdg.ausbc.utils.bus.BusKey
 import com.jiangdg.ausbc.utils.bus.EventBus
 import java.io.File
+import java.io.FileDescriptor
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -137,7 +138,7 @@ class RenderManager(
                 }
             }
             MSG_GL_SAVE_IMAGE -> {
-                saveImageInternal(msg.obj as? String)
+                saveImageInternal(msg.obj as FileDescriptor)
             }
             MSG_GL_START_RENDER_CODEC -> {
                 (msg.obj as Triple<*, *, *>).apply {
@@ -350,9 +351,9 @@ class RenderManager(
      * @param callBack capture image status, see [ICaptureCallBack]
      * @param path custom image path
      */
-    fun saveImage(callBack: ICaptureCallBack?, path: String?) {
+    fun saveImage(callBack: ICaptureCallBack?, fd: FileDescriptor) {
         this.mCaptureDataCb = callBack
-        mRenderHandler?.obtainMessage(MSG_GL_SAVE_IMAGE, path)?.sendToTarget()
+        mRenderHandler?.obtainMessage(MSG_GL_SAVE_IMAGE, fd)?.sendToTarget()
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
@@ -420,7 +421,7 @@ class RenderManager(
         mRenderCodecHandler = null
     }
 
-    private fun saveImageInternal(savePath: String?) {
+    private fun saveImageInternal(fd: FileDescriptor) {
         if (mCaptureState.get()) {
             return
         }
@@ -429,9 +430,7 @@ class RenderManager(
             mCaptureDataCb?.onBegin()
         }
         val date = mDateFormat.format(System.currentTimeMillis())
-        val title = savePath ?: "IMG_AUSBC_$date"
-        val displayName = savePath ?: "$title.jpg"
-        val path = savePath ?: "$mCameraDir/$displayName"
+
         val width = mWidth
         val height = mHeight
         // 写入文件
@@ -439,7 +438,7 @@ class RenderManager(
         // 故需要将图片上下颠倒为正
         var fos: FileOutputStream? = null
         try {
-            fos = FileOutputStream(path)
+            fos = FileOutputStream(fd)
             GLBitmapUtils.transFrameBufferToBitmap(mFBOBufferId, width, height).apply {
                 compress(Bitmap.CompressFormat.JPEG, 100, fos)
                 recycle()
@@ -456,30 +455,12 @@ class RenderManager(
                 Logger.e(TAG, "Failed to write file, err = ${e.localizedMessage}", e)
             }
         }
-        //Judge whether it is saved successfully
-        //Update gallery if successful
-        val file = File(path)
-        if (file.length() == 0L) {
-            Logger.e(TAG, "Failed to save file $path")
-            file.delete()
-            mCaptureState.set(false)
-            return
-        }
-        val values = ContentValues()
-        values.put(MediaStore.Images.ImageColumns.TITLE, title)
-        values.put(MediaStore.Images.ImageColumns.DISPLAY_NAME, displayName)
-        values.put(MediaStore.Images.ImageColumns.DATA, path)
-        values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, date)
-        values.put(MediaStore.Images.ImageColumns.WIDTH, width)
-        values.put(MediaStore.Images.ImageColumns.HEIGHT, height)
-        mContext.contentResolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
         mMainHandler.post {
-            mCaptureDataCb?.onComplete(path)
+            mCaptureDataCb?.onComplete(fd)
         }
         mCaptureState.set(false)
-        if (Utils.debugCamera) {
-            Logger.i(TAG, "captureImageInternal save path = $path")
-        }
+
     }
 
     private fun emitFrameRate() {

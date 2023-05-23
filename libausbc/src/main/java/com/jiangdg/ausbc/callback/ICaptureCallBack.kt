@@ -15,6 +15,8 @@
  */
 package com.jiangdg.ausbc.callback
 
+import java.io.FileDescriptor
+
 /** Capture a media callback
  *
  * @author Created by jiangdg on 2022/1/29
@@ -22,5 +24,5 @@ package com.jiangdg.ausbc.callback
 interface ICaptureCallBack {
     fun onBegin()
     fun onError(error: String?)
-    fun onComplete(path: String?)
+    fun onComplete(fd: FileDescriptor)
 }

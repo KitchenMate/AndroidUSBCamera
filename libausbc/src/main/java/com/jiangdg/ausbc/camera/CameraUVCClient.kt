@@ -92,4 +92,9 @@ open class CameraUVCClient(ctx: Context, device: UsbDevice) : CameraUVC(ctx, dev
     open fun callIsCameraOpened() : Boolean {
         return this.isCameraOpened();
     }
+
+    open fun callCaptureImage(callback: ICaptureCallBack, fd: FileDescriptor) {
+        return this.captureImage(callback, fd);
+    }
+
 }

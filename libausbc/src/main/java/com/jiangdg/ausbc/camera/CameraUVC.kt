@@ -30,6 +30,7 @@ import com.jiangdg.ausbc.callback.ICameraStateCallBack
 import com.jiangdg.ausbc.callback.ICaptureCallBack
 import com.jiangdg.ausbc.callback.IPreviewDataCallBack
 import com.jiangdg.ausbc.camera.bean.PreviewSize
+import com.jiangdg.ausbc.render.RenderManager
 import com.jiangdg.ausbc.utils.CameraUtils
 import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.MediaUtils
@@ -38,6 +39,7 @@ import com.jiangdg.ausbc.widget.IAspectRatio
 import com.jiangdg.uvc.IFrameCallback
 import com.jiangdg.uvc.UVCCamera
 import java.io.File
+import java.io.FileDescriptor
 import java.util.concurrent.TimeUnit
 
 /** UVC Camera
@@ -227,64 +229,20 @@ open class CameraUVC(ctx: Context, device: UsbDevice) : MultiCameraClient.ICamer
         }
     }
 
-    override fun captureImageInternal(savePath: String?, callback: ICaptureCallBack) {
+    override fun captureImageInternal(fd: FileDescriptor, callback: ICaptureCallBack) {
         mSaveImageExecutor.submit {
-            if (! CameraUtils.hasStoragePermission(ctx)) {
-                mMainHandler.post {
-                    callback.onError("have no storage permission")
+
+            var previewSize = getCameraRequest()?.let {
+                getSuitableSize(it.previewWidth, it.previewHeight).apply {
+                    mCameraRequest!!.previewWidth = width
+                    mCameraRequest!!.previewHeight = height
                 }
-                Logger.e(TAG,"open camera failed, have no storage permission")
-                return@submit
             }
-            if (! isPreviewed) {
-                mMainHandler.post {
-                    callback.onError("camera not previewing")
-                }
-                Logger.i(TAG, "captureImageInternal failed, camera not previewing")
-                return@submit
-            }
-            val data = mNV21DataQueue.pollFirst(CAPTURE_TIMES_OUT_SEC, TimeUnit.SECONDS)
-            if (data == null) {
-                mMainHandler.post {
-                    callback.onError("Times out")
-                }
-                Logger.i(TAG, "captureImageInternal failed, times out.")
-                return@submit
-            }
-            mMainHandler.post {
-                callback.onBegin()
-            }
-            val date = mDateFormat.format(System.currentTimeMillis())
-            val title = savePath ?: "IMG_AUSBC_$date"
-            val displayName = savePath ?: "$title.jpg"
-            val path = savePath ?: "$mCameraDir/$displayName"
-            val location = Utils.getGpsLocation(ctx)
-            val width = mCameraRequest!!.previewWidth
-            val height = mCameraRequest!!.previewHeight
-            val ret = MediaUtils.saveYuv2Jpeg(path, data, width, height)
-            if (! ret) {
-                val file = File(path)
-                if (file.exists()) {
-                    file.delete()
-                }
-                mMainHandler.post {
-                    callback.onError("save yuv to jpeg failed.")
-                }
-                Logger.w(TAG, "save yuv to jpeg failed.")
-                return@submit
-            }
-            val values = ContentValues()
-            values.put(MediaStore.Images.ImageColumns.TITLE, title)
-            values.put(MediaStore.Images.ImageColumns.DISPLAY_NAME, displayName)
-            values.put(MediaStore.Images.ImageColumns.DATA, path)
-            values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, date)
-            values.put(MediaStore.Images.ImageColumns.LONGITUDE, location?.longitude)
-            values.put(MediaStore.Images.ImageColumns.LATITUDE, location?.latitude)
-            ctx.contentResolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-            mMainHandler.post {
-                callback.onComplete(path)
-            }
-            if (Utils.debugCamera) { Logger.i(TAG, "captureImageInternal save path = $path") }
+
+            var rm = RenderManager(mContext, previewSize?.width ?: 640, previewSize?.height ?: 480, null)
+            rm.saveImage(callback, fd)
+
+            if (Utils.debugCamera) { Logger.i(TAG, "captureImageInternal") }
         }
     }
 

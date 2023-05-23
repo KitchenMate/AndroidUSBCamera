@@ -359,13 +359,13 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
                 }
                 MSG_CAPTURE_IMAGE -> {
                     (msg.obj as Pair<*, *>).apply {
-                        val path = first as? String
+                        val fd = first as FileDescriptor
                         val cb = second as ICaptureCallBack
                         if (isNeedGLESRender && !mCameraRequest!!.isCaptureRawImage) {
-                            mRenderManager?.saveImage(cb, path)
+                            mRenderManager?.saveImage(cb, fd)
                             return@apply
                         }
-                        captureImageInternal(path, second as ICaptureCallBack)
+                        captureImageInternal(fd, second as ICaptureCallBack)
                     }
                 }
                 MSG_CAPTURE_VIDEO_START -> {
@@ -388,7 +388,7 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
 
         protected abstract fun <T> openCameraInternal(cameraView: T)
         protected abstract fun closeCameraInternal()
-        protected abstract fun captureImageInternal(savePath: String?, callback: ICaptureCallBack)
+        protected abstract fun captureImageInternal(fd: FileDescriptor, callback: ICaptureCallBack)
 
         protected open fun getAudioStrategy(): IAudioStrategy? {
             return when(mCameraRequest?.audioSource) {
@@ -685,17 +685,19 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
          */
         public open fun getCameraRequest() = mCameraRequest
 
+
         /**
          * Capture image
          *
          * @param callBack capture a image status, see [ICaptureCallBack]
-         * @param path image save path, default is DICM/Camera
+         * @param fd image file descriptor, default is DICM/Camera
          */
-        public open fun captureImage(callBack: ICaptureCallBack, path: String? = null) {
-            Pair(path, callBack).apply {
+        public open fun captureImage(callBack: ICaptureCallBack, fd: FileDescriptor) {
+            Pair(fd, callBack).apply {
                 mCameraHandler?.obtainMessage(MSG_CAPTURE_IMAGE, this)?.sendToTarget()
             }
         }
+
 
         /**
          * Capture video start
