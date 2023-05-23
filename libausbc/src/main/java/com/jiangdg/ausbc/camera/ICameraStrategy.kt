@@ -35,6 +35,7 @@ import com.jiangdg.ausbc.camera.bean.CameraStatus
 import com.jiangdg.ausbc.camera.bean.PreviewSize
 import com.jiangdg.ausbc.utils.bus.BusKey
 import com.jiangdg.ausbc.utils.bus.EventBus
+import java.io.FileDescriptor
 import java.lang.Deprecated
 import java.text.SimpleDateFormat
 import java.util.*
@@ -109,7 +110,7 @@ abstract class ICameraStrategy(context: Context) : Handler.Callback {
                 stopPreviewInternal()
             }
             MSG_CAPTURE_IMAGE -> {
-                captureImageInternal(msg.obj as? String)
+                captureImageInternal(msg.obj as FileDescriptor)
             }
             MSG_SWITCH_CAMERA -> {
                 switchCameraInternal(msg.obj as? String)
@@ -176,9 +177,9 @@ abstract class ICameraStrategy(context: Context) : Handler.Callback {
      * @param savePath image save path
      */
     @Synchronized
-    fun captureImage(callBack: ICaptureCallBack, savePath: String?) {
+    fun captureImage(callBack: ICaptureCallBack, fd: FileDescriptor) {
         this.mCaptureDataCb = callBack
-        mCameraHandler?.obtainMessage(MSG_CAPTURE_IMAGE, savePath)?.sendToTarget()
+        mCameraHandler?.obtainMessage(MSG_CAPTURE_IMAGE, fd)?.sendToTarget()
     }
 
     /**
@@ -291,7 +292,7 @@ abstract class ICameraStrategy(context: Context) : Handler.Callback {
      * see [Camera1Strategy] or [Camera2Strategy] or [CameraUvcStrategy]
      * @param savePath
      */
-    protected abstract fun captureImageInternal(savePath: String?)
+    protected abstract fun captureImageInternal(fd: FileDescriptor)
 
     /**
      * Switch camera internal,

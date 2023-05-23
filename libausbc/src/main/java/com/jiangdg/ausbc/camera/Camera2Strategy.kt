@@ -36,6 +36,8 @@ import com.jiangdg.ausbc.camera.bean.CameraV2Info
 import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.Utils
 import java.io.File
+import java.io.FileDescriptor
+import java.io.FileOutputStream
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
@@ -56,7 +58,7 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
     private var mCameraDeviceFuture: SettableFuture<CameraDevice>? = null
     private var mCameraCharacteristicsFuture: SettableFuture<CameraCharacteristics>? = null
     private var mCameraSessionFuture: SettableFuture<CameraCaptureSession>? = null
-    private var mImageSavePath: SettableFuture<String> = SettableFuture()
+    private var mImageSaveFD: SettableFuture<FileDescriptor> = SettableFuture()
     private var mPreviewDataImageReader: ImageReader? = null
     private var mJpegImageReader: ImageReader? = null
     // 输出到屏幕的Surface
@@ -124,7 +126,7 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
         closeCamera()
     }
 
-    override fun captureImageInternal(savePath: String?) {
+    override fun captureImageInternal(fd: FileDescriptor) {
         if (! hasCameraPermission() || !hasStoragePermission()) {
             mMainHandler.post {
                 mCaptureDataCb?.onError("Have no storage or camera permission.")
@@ -154,7 +156,7 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
                 captureBuilder.addTarget(jpegSurface)
                 captureBuilder.build()
             }
-            mImageSavePath.set(savePath)
+            mImageSaveFD.set(fd)
             cameraSession.capture(captureRequest, mImageCaptureStateCallBack, mMainHandler)
         } catch (e: Exception) {
             mMainHandler.post {
@@ -584,9 +586,9 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
             val jpegBufferArray = ByteArray(jpegBuffer.remaining())
             jpegBuffer.get(jpegBufferArray)
             mSaveImageExecutor.submit {
-                var savePath: String? = null
+                var fd: FileDescriptor? = null
                 try {
-                    savePath = mImageSavePath.get(3, TimeUnit.SECONDS)
+                    fd = mImageSaveFD.get(3, TimeUnit.SECONDS)!!
                 } catch (e: Exception) {
                     Logger.e(TAG, "times out.", e)
                     mMainHandler.post {
@@ -594,25 +596,14 @@ class Camera2Strategy(ctx: Context) : ICameraStrategy(ctx) {
                     }
                 }
                 val date = mDateFormat.format(System.currentTimeMillis())
-                val title = savePath ?: "IMG_JJCamera_$date"
-                val displayName = savePath ?: "$title.jpg"
-                val path = savePath ?: "$mCameraDir/$displayName"
-//                val orientation = captureResult[CaptureResult.JPEG_ORIENTATION]
-//                val location = captureResult[CaptureResult.JPEG_GPS_LOCATION]
-                // 写入文件
-                File(path).writeBytes(jpegBufferArray)
-                // 更新
-                val values = ContentValues()
-                values.put(MediaStore.Images.ImageColumns.TITLE, title)
-                values.put(MediaStore.Images.ImageColumns.DISPLAY_NAME, displayName)
-                values.put(MediaStore.Images.ImageColumns.DATA, path)
-                values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, date)
-//                values.put(MediaStore.Images.ImageColumns.ORIENTATION, orientation)
-//                values.put(MediaStore.Images.ImageColumns.LONGITUDE, location?.longitude)
-//                values.put(MediaStore.Images.ImageColumns.LATITUDE, location?.latitude)
-                getContext()?.contentResolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
+
+                FileOutputStream(fd).write(jpegBufferArray)
+
                 mMainHandler.post {
-                    mCaptureDataCb?.onComplete(path)
+                    if (fd != null) {
+                        mCaptureDataCb?.onComplete(fd)
+                    }
                 }
             }
         }

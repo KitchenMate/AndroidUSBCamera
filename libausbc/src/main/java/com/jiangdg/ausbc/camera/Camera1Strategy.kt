@@ -29,6 +29,8 @@ import com.jiangdg.ausbc.camera.bean.PreviewSize
 import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.Utils
 import java.io.File
+import java.io.FileDescriptor
+import java.io.FileOutputStream
 import kotlin.Exception
 
 /** Camera1 usage
@@ -81,43 +83,31 @@ class Camera1Strategy(ctx: Context) : ICameraStrategy(ctx), Camera.PreviewCallba
         destroyCamera()
     }
 
-    override fun captureImageInternal(savePath: String?) {
+    override fun captureImageInternal(fd: FileDescriptor) {
         val jpegDataCb = Camera.PictureCallback { data, camera ->
             mSaveImageExecutor.submit {
                 mMainHandler.post {
                     mCaptureDataCb?.onBegin()
                 }
                 val date = mDateFormat.format(System.currentTimeMillis())
-                val title = savePath ?: "IMG_JJCamera_$date"
-                val displayName = savePath ?: "$title.jpg"
-                val path = savePath ?: "$mCameraDir/$displayName"
                 val width = getRequest()?.previewWidth
                 val height = getRequest()?.previewHeight
                 val orientation = 0
                 val location = Utils.getGpsLocation(getContext())
-                // 写入文件
-                File(path).writeBytes(data)
-                // 更新
-                val values = ContentValues()
-                values.put(MediaStore.Images.ImageColumns.TITLE, title)
-                values.put(MediaStore.Images.ImageColumns.DISPLAY_NAME, displayName)
-                values.put(MediaStore.Images.ImageColumns.DATA, path)
-                values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, date)
-                values.put(MediaStore.Images.ImageColumns.WIDTH, width)
-                values.put(MediaStore.Images.ImageColumns.HEIGHT, height)
-                values.put(MediaStore.Images.ImageColumns.ORIENTATION, orientation)
-                values.put(MediaStore.Images.ImageColumns.LONGITUDE, location?.longitude)
-                values.put(MediaStore.Images.ImageColumns.LATITUDE, location?.latitude)
-                getContext()?.contentResolver?.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+
+                var fos = FileOutputStream(fd)
+
+                fos.write(data)
+                fos.close()
                 mMainHandler.post {
-                    mCaptureDataCb?.onComplete(path)
+                    mCaptureDataCb?.onComplete(fd)
                 }
                 stopPreviewInternal()
                 startPreviewInternal()
                 realStartPreview()
                 mIsCapturing.set(false)
                 if (Utils.debugCamera) {
-                    Logger.i(TAG, "takePictureInternal save path = $path")
+                    Logger.i(TAG, "takePictureInternal save")
                 }
             }
         }

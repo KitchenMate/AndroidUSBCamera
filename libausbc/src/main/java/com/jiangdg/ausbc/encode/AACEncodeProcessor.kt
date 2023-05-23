@@ -260,7 +260,7 @@ class AACEncodeProcessor(strategy: IAudioStrategy? = null) : AbstractProcessor()
                     LameMp3.lameClose()
                     releaseAudioRecord()
                     mMainHandler.post {
-                        callBack.onComplete(audioPath)
+                        audioPath?.let { callBack.onComplete(it) }
                     }
                     if (Utils.debugCamera) {
                         Logger.i(TAG, "stop record mp3 success.")

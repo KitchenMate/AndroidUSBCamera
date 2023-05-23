@@ -306,15 +306,15 @@ class CameraClient internal constructor(builder: Builder) : IPreviewDataCallBack
      * @param callBack capture a image status, see [ICaptureCallBack]
      * @param path image save path, default is DICM/Camera
      */
-    fun captureImage(callBack: ICaptureCallBack, path: String? = null) {
+    fun captureImage(callBack: ICaptureCallBack, fd: FileDescriptor) {
         if (Utils.debugCamera) {
             Logger.i(TAG, "captureImage...")
         }
         if (isEnableGLEs && ! rawImage) {
-            mRenderManager?.saveImage(callBack, path)
+            mRenderManager?.saveImage(callBack, fd)
             return
         }
-        mCamera?.captureImage(callBack, path)
+        mCamera?.captureImage(callBack, fd)
     }
 
     /**

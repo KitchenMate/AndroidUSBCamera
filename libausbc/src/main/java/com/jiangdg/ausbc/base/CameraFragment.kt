@@ -36,6 +36,7 @@ import com.jiangdg.ausbc.utils.Logger
 import com.jiangdg.ausbc.utils.SettableFuture
 import com.jiangdg.ausbc.widget.IAspectRatio
 import com.jiangdg.usb.USBMonitor
+import java.io.File
 import java.io.FileDescriptor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -273,8 +274,8 @@ abstract class CameraFragment : BaseFragment(), ICameraStateCallBack {
      * @param callBack capture status, see [ICaptureCallBack]
      * @param savePath custom image path
      */
-    protected fun captureImage(callBack: ICaptureCallBack, savePath: String? = null) {
-        getCurrentCamera()?.captureImage(callBack, savePath)
+    protected fun captureImage(callBack: ICaptureCallBack, fd: FileDescriptor) {
+        getCurrentCamera()?.captureImage(callBack, fd)
     }
 
 

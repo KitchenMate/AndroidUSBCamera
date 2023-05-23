@@ -257,8 +257,8 @@ abstract class CameraActivity: BaseActivity(), ICameraStateCallBack {
      * @param callBack capture status, see [ICaptureCallBack]
      * @param savePath custom image path
      */
-    protected fun captureImage(callBack: ICaptureCallBack, savePath: String? = null) {
-        getCurrentCamera()?.captureImage(callBack, savePath)
+    protected fun captureImage(callBack: ICaptureCallBack, fd: FileDescriptor) {
+        getCurrentCamera()?.captureImage(callBack, fd)
     }
 
     /**

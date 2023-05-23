@@ -25,4 +25,5 @@ interface ICaptureCallBack {
     fun onBegin()
     fun onError(error: String?)
     fun onComplete(fd: FileDescriptor)
+    fun onComplete(path: String)
 }

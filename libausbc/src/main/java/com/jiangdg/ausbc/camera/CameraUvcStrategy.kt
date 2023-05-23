@@ -17,6 +17,9 @@ package com.jiangdg.ausbc.camera
 
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.ImageFormat
+import android.graphics.Rect
+import android.graphics.YuvImage
 import android.hardware.usb.UsbDevice
 import android.os.Build
 import android.provider.MediaStore
@@ -33,7 +36,10 @@ import com.jiangdg.usb.DeviceFilter
 import com.jiangdg.usb.USBMonitor
 import com.jiangdg.uvc.IFrameCallback
 import com.jiangdg.uvc.UVCCamera
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileDescriptor
+import java.io.FileOutputStream
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -233,7 +239,7 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
         postCameraStatus(CameraStatus(CameraStatus.STOP))
     }
 
-    override fun captureImageInternal(savePath: String?) {
+    override fun captureImageInternal(fd: FileDescriptor) {
         if (!hasCameraPermission() || !hasStoragePermission()) {
             mMainHandler.post {
                 mCaptureDataCb?.onError("Have no storage or camera permission.")
@@ -257,44 +263,21 @@ class CameraUvcStrategy(ctx: Context) : ICameraStrategy(ctx) {
             mMainHandler.post {
                 mCaptureDataCb?.onBegin()
             }
-            val date = mDateFormat.format(System.currentTimeMillis())
-            val title = savePath ?: "IMG_JJCamera_$date"
-            val displayName = savePath ?: "$title.jpg"
-            val path = savePath ?: "$mCameraDir/$displayName"
-            val orientation = 0
-            val location = Utils.getGpsLocation(getContext())
+
             val width = getRequest()!!.previewWidth
             val height = getRequest()!!.previewHeight
-            val ret = MediaUtils.saveYuv2Jpeg(path, data, width, height)
-            if (!ret) {
-                val file = File(path)
-                if (file.exists()) {
-                    file.delete()
-                }
-                mMainHandler.post {
-                    mCaptureDataCb?.onError("save yuv to jpeg failed.")
-                }
-                Logger.w(TAG, "save yuv to jpeg failed.")
-                return@submit
-            }
-            val values = ContentValues()
-            values.put(MediaStore.Images.ImageColumns.TITLE, title)
-            values.put(MediaStore.Images.ImageColumns.DISPLAY_NAME, displayName)
-            values.put(MediaStore.Images.ImageColumns.DATA, path)
-            values.put(MediaStore.Images.ImageColumns.DATE_TAKEN, date)
-            values.put(MediaStore.Images.ImageColumns.ORIENTATION, orientation)
-            values.put(MediaStore.Images.ImageColumns.LONGITUDE, location?.longitude)
-            values.put(MediaStore.Images.ImageColumns.LATITUDE, location?.latitude)
-            getContext()?.contentResolver?.insert(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                values
-            )
+
+            val img = YuvImage(data, ImageFormat.NV21, width, height, null);
+            val fos = FileOutputStream(fd)
+            img.compressToJpeg( Rect(0, 0, width, height ), 100, fos);
+            fos.close()
+
             mMainHandler.post {
-                mCaptureDataCb?.onComplete(path)
+                mCaptureDataCb?.onComplete(fd)
             }
             mIsCapturing.set(false)
             if (Utils.debugCamera) {
-                Logger.i(TAG, "captureImageInternal save path = $path")
+                Logger.i(TAG, "captureImageInternal save")
             }
         }
     }
