@@ -77,8 +77,8 @@ open class CameraUVCClient(ctx: Context, device: UsbDevice) : CameraUVC(ctx, dev
         return this.getUsbDevice();
     }
 
-    open fun callOpenCamera(surfaceTexture: SurfaceTexture, cameraRequest: CameraRequest) {
-        return this.openCamera(surfaceTexture, cameraRequest);
+    open fun <T> callOpenCamera(cameraView: T? = null, cameraRequest: CameraRequest) {
+        return this.openCamera(cameraView, cameraRequest);
     }
 
     open fun callAddPreviewDataCallback(previewCallBack: IPreviewDataCallBack) {
@@ -95,6 +95,14 @@ open class CameraUVCClient(ctx: Context, device: UsbDevice) : CameraUVC(ctx, dev
 
     open fun callCaptureImage(callback: ICaptureCallBack, fd: FileDescriptor) {
         return this.captureImage(callback, fd);
+    }
+
+    open fun callClearPreviewDataCallback() {
+        return this.clearPreviewDataCallBacks()
+    }
+
+    open fun callRemovePreviewDataCallBack(callback: IPreviewDataCallBack) {
+        return this.removePreviewDataCallBack(callback);
     }
 
 }

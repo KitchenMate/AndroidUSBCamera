@@ -806,6 +806,16 @@ class MultiCameraClient(ctx: Context, callback: IDeviceConnectCallBack?) {
             mPreviewDataCbList.remove(callBack)
         }
 
+        /**
+         * Remove preview data call back
+         *
+         * @param callBack preview data call back
+         */
+        public open fun clearPreviewDataCallBacks() {
+            mPreviewDataCbList.clear()
+        }
+
+
         public open fun getSuitableSize(maxWidth: Int, maxHeight: Int): PreviewSize {
             val sizeList = getAllPreviewSizes()
             if (sizeList.isNullOrEmpty()) {
