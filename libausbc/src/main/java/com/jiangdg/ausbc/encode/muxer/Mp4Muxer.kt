@@ -220,6 +220,9 @@ class Mp4Muxer(
         try {
             mMediaMuxer?.stop()
             mMediaMuxer?.release()
+            mMainHandler.post {
+                mCaptureCallBack?.onComplete(this.fd)
+            }
         } catch (e: Exception) {
             mMainHandler.post {
                 mCaptureCallBack?.onError(e.localizedMessage)
